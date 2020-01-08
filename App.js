@@ -1,20 +1,40 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
 import Tabs from './src';
 import AsyncStorage from '@react-native-community/async-storage';
 
+const key = 'state';
 /**************************************************
  * App main component
 ***************************************************/
-export default class App extends Component {
+export default class App extends Component {  
   state = {
     cities: []
+  };
+
+  // load data from AsyncStorage
+  async componentDidMount() {
+    try {
+      let cities = await AsyncStorage.getItem(key);
+      if(cities) {
+        cities = JSON.parse(cities);
+        this.setState({ cities });
+      }
+    } catch (error) {
+      console.log('error from AsyncStorage: ', e);
+    }
   }
   
   addCity = (city) => {
     const cities = this.state.cities;
     cities.push(city);
-    this.setState({ cities });
+    this.setState(
+      { cities },
+      () => {
+        AsyncStorage.setItem(key, JSON.stringify(cities))
+          .then(() => console.log('storage updated!'))
+          .catch(e => console.log('e: ', e));
+      }
+    );
   };
 
   addLocation = (location, city) => {
@@ -28,9 +48,14 @@ export default class App extends Component {
       chosenCity,
       ...this.state.cities.slice(index + 1)
     ];  // check
-    this.setState({
-      cities
-    });
+    this.setState(
+      { cities },
+      () => {
+        AsyncStorage.setItem(key, JSON.stringify(cities))
+          .then(() => console.log('storage updated!'))
+          .catch(e => console.log('e: ', e));
+      }
+    );
   };
 
   render() {
